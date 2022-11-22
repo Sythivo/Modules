@@ -1,3 +1,11 @@
+--[=[
+	memory.lua
+	
+	light-weight collection management and cleaner
+
+	author: Sythivo
+--]=]
+
 local memory = ({});
 
 local IDisposable_Keys = ({

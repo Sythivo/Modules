@@ -1,7 +1,6 @@
 --[=[
 	memory.lua
-	
-	light-weight collection management and cleaner
+	  light-weight collection management and cleaner
 
 	author: Sythivo
 --]=]
@@ -24,7 +23,7 @@ end;
 local super_dispose = function(object : any)
 	local method = (memory.methods[typeof(object)]);
 
-	if (method and type(method) == "function") then
+	if (type(method) == "function") then
 		local success, err = pcall(method, object);
 		if (not success) then
 			warn(("[Memory] Failed to CleanUp : %s"):format(err))
@@ -63,9 +62,7 @@ function memory.new()
 	self.collection = ({});
 
 	function self:Add<T...>(... : T...) : (T...)
-		local request = ({...});
-		
-		for _, value in next, (request) do
+		for _, value in next, ({...}) do
 			table.insert(self.collection, value);
 		end
 		
@@ -92,7 +89,10 @@ function memory.new()
 			end
 		end
 	end
-	
+	function self:Dispose()
+		self:Clean();
+	end
+
 	return self;
 end
 

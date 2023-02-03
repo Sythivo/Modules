@@ -23,77 +23,76 @@ end;
 local super_dispose = function(object : any)
 	local method = (memory.methods[typeof(object)]);
 
-	if (type(method) == "function") then
+	if (method and type(method) == "function") then
 		local success, err = pcall(method, object);
 		if (not success) then
 			warn(("[Memory] Failed to CleanUp : %s"):format(err))
 		end
-		return (true);
 	end
-	return (false);
 end
 
 memory.methods = ({
-	["table"] = function(table : {any})
+	table = function(table : {any})
 		local IDisposable = (get_next(table, IDisposable_Keys));
 		if (type(IDisposable) == "function") then
 			return IDisposable(table);
 		end
-		
+
 		for index, value in table do
 			super_dispose(value);
 			table[index] = (nil);
 		end
-	end,
-	["Instance"] = function(Instance : Instance)
+	end;
+	Instance = function(Instance : Instance)
 		if (Instance:IsA("Tween")) then
 			Instance:Cancel();
 		end
 		Instance:Destroy();
-	end,
-	["RBXScriptConnection"] = function(RBXScriptConnection : RBXScriptConnection)
+	end;
+	RBXScriptConnection = function(RBXScriptConnection : RBXScriptConnection)
 		RBXScriptConnection:Disconnect();
-	end,
+	end;
 });
 
+memory.__index = memory;
+
 function memory.new()
-	local self = ({});
-	
-	self.collection = ({});
+	return (setmetatable({
+		collection = {};
+	}, memory));
+end
 
-	function self:Add<T...>(... : T...) : (T...)
-		for _, value in next, ({...}) do
-			table.insert(self.collection, value);
-		end
-		
-		return ...;
+
+function memory:Add<T...>(... : T...) : (T...)
+	for _, value in {...} do
+		table.insert(self.collection, value);
 	end
-	function self:Remove(index : number): ()
+
+	return ...;
+end
+
+function memory:Remove(index : number): ()
+	if (self.collection[index]) then
+		self.collection[index] = nil
+	end
+end
+
+function memory:Get(index : number): (any)
+	return self.collection[index];
+end
+
+function memory:Clean(index : number?)
+	if (index) then
 		if (self.collection[index]) then
-			self.collection[index] = nil
+			super_dispose(self.collection[index]);
+			self:Remove(index);
+		end
+	else
+		for index : number, value : any in self.collection do
+			super_dispose(value);
+			self:Remove(index);
 		end
 	end
-	function self:Get(index : number): (any)
-		return self.collection[index];
-	end
-	function self:Clean(index : number?)
-		if (index) then
-			if (self.collection[index]) then
-				super_dispose(self.collection[index]);
-				self:Remove(index);
-			end
-		else
-			for index : number, value : any in ipairs(self.collection) do
-				super_dispose(value);
-				self:Remove(index);
-			end
-		end
-	end
-	function self:Dispose()
-		self:Clean();
-	end
-
-	return self;
 end
 
 return memory;

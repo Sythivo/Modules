@@ -94,7 +94,7 @@ function memory:Clean(index : number?)
 		end
 	end
 end
-function self:Dispose()
+function memory:Dispose()
 	self:Clean();
 end
 

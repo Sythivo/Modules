@@ -64,7 +64,11 @@ end
 
 
 function memory:Add<T...>(... : T...) : (T...)
-	for _, value in {...} do
+	local pack = table.pack(...);
+	
+	pack.n = nil;
+
+	for _, value in pack do
 		table.insert(self.collection, value);
 	end
 
